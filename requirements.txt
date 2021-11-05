@@ -1,0 +1,10 @@
+### Project packages ###
+fasttext
+flask
+matplotlib
+numpy
+pandas
+pytorch-lightning
+scikit-learn
+seaborn
+torch
