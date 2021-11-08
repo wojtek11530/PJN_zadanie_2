@@ -17,7 +17,7 @@ from tqdm.auto import tqdm
 
 from src.dataset import TextDataModule, TextDataset
 from src.mlp import MLPClassifier
-from src.settings import DATA_FOLDER
+from src.settings import MODELS_FOLDER
 from src.utils import dictionary_to_json, is_folder_empty
 from src.word_embedder import FasttextWordEmbedder, Word2VecWordEmbedder
 
@@ -30,16 +30,16 @@ logger = logging.getLogger(__name__)
 def train_model(args):
     eval = args.eval
 
-    output_dir = manage_output_dir(model_name='MLP', word_embedding_model=args.word_embedding_type)
+    save_model_dir = manage_output_dir(model_name='MLP', word_embedding_model=args.word_embedding_type)
 
     dict_hyperparameters = vars(args)
     dict_hyperparameters.pop('eval')
-    dictionary_to_json(dict_hyperparameters, os.path.join(output_dir, 'hp.json'))
+    dictionary_to_json(dict_hyperparameters, os.path.join(save_model_dir, 'hp.json'))
 
-    logger = TensorBoardLogger(name='tensorboard_logs', save_dir=output_dir, default_hp_metric=False)
+    tensorboard_logger = TensorBoardLogger(name='tensorboard_logs', save_dir=save_model_dir, default_hp_metric=False)
 
     trainer = pl.Trainer(
-        logger=logger,
+        logger=tensorboard_logger,
         max_epochs=50,
         callbacks=[EarlyStopping(monitor='val_loss', mode='min', patience=6, verbose=True)],
         gpus=1 if torch.cuda.is_available() else None
@@ -69,11 +69,11 @@ def train_model(args):
     )
 
     trainer.fit(model, datamodule)
-    trainer.save_checkpoint(filepath=os.path.join(output_dir, 'model.chkpt'))
+    trainer.save_checkpoint(filepath=os.path.join(save_model_dir, 'model.chkpt'))
 
     if eval:
         print('Run model evaluation')
-        evaluate_model(output_dir, args.data_dir)
+        evaluate_model(save_model_dir, args.data_dir)
 
 
 def evaluate_model(model_dir: str, data_dir: str) -> None:
@@ -150,7 +150,7 @@ def get_confusion_matrix_plot(conf_matrix: pd.DataFrame) -> Tuple[plt.figure, pl
 
 
 def manage_output_dir(model_name: str, word_embedding_model: str) -> str:
-    output_dir = os.path.join(DATA_FOLDER, model_name + '-' + word_embedding_model)
+    output_dir = os.path.join(MODELS_FOLDER, model_name + '-' + word_embedding_model)
     run = 1
     while os.path.exists(output_dir + '-run-' + str(run)):
         if is_folder_empty(output_dir + '-run-' + str(run)):

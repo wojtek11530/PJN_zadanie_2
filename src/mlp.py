@@ -10,6 +10,7 @@ class MLPClassifier(LightningModule):
     def __init__(self, input_size: int = 100, output_size: int = 4, hidden_size: int = 24,
                  learning_rate: float = 1e-3, weight_decay: float = 1e-5, dropout: float = 0.5):
         super(MLPClassifier, self).__init__()
+        self.save_hyperparameters()
 
         self._layer_1 = torch.nn.Linear(input_size, hidden_size)
         self._layer_2 = torch.nn.Linear(hidden_size, output_size)
@@ -36,8 +37,8 @@ class MLPClassifier(LightningModule):
             -> Dict[str, Any]:
         loss, y_true, probs = self._shared_step(batch)
         self.train_accuracy(probs, y_true)
-        self.log('train_acc', self.train_accuracy, on_epoch=True)
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log('train_acc', self.train_accuracy, on_step=False, on_epoch=True)
+        self.log('train_loss', loss.item(), on_step=True, on_epoch=True)
         return {'loss': loss}
 
     def validation_step(self, val_batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) \
@@ -45,7 +46,7 @@ class MLPClassifier(LightningModule):
         loss, y_true, probs = self._shared_step(val_batch)
         self.val_accuracy(probs, y_true)
         self.log('val_acc', self.val_accuracy, on_epoch=True)
-        self.log('val_loss', loss, on_epoch=True, prog_bar=True)
+        self.log('val_loss', loss.item(), on_epoch=True, prog_bar=True)
         return {'val_loss': loss}
 
     def _shared_step(self, batch: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:

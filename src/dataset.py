@@ -10,7 +10,8 @@ from src.word_embedder import WordEmbedder
 
 
 class TextDataModule(LightningDataModule):
-    def __init__(self, data_dir: str, word_embedder: WordEmbedder, batch_size: int = 64, avg_embedding: bool = False):
+    def __init__(self, data_dir: str, word_embedder: WordEmbedder,
+                 batch_size: int = 64, avg_embedding: bool = False):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
@@ -99,9 +100,9 @@ class TextDataset(Dataset):
         labels = []
         for (i, line) in enumerate(lines):
             split_line = line.split('__label__')
-            text_a = split_line[0]
+            text = split_line[0]
             label = split_line[1]
-            texts.append(text_a)
+            texts.append(text)
             labels.append(label)
 
         return np.array(texts), np.array(labels)
