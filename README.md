@@ -33,7 +33,7 @@ Pozostałe argumenty nie są wymagane, gdyż mogą przyjąć wartości domyślne
  - `dropout` - prawdopodobieństwo dropoutu, domyślnie: 0.01,
  - `batch_size` - rozmiar batcha podczas trenowania, domyślnie: 32,
  - `learning_rate` - współczynnik uczenia, domyślnie: 0.005,
- - `weight_decay` - współczynnik __weight decay__, domyśłnie: 0.0001,
+ - `weight_decay` - współczynnik _weight decay_, domyśłnie: 0.0001,
  - `eval` - wartość `True` bądź `False` wskazująca, czy po trenowaniu wykona się
     ewaluacja modelu na zbiorze testowym, domyślnie `False`.
 
