@@ -1,8 +1,19 @@
+import abc
 import json
 import os
+from typing import Dict
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
+
+
+class Singleton(abc.ABCMeta,):
+    _instances: Dict[object, object] = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
 
 def get_label_encoder(labels: np.ndarray):

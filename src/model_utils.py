@@ -1,4 +1,3 @@
-import datetime
 import json
 import logging
 import os
@@ -14,11 +13,13 @@ from pytorch_lightning.callbacks import EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 from sklearn.metrics import classification_report, confusion_matrix
 from torch.utils.data import DataLoader
+from tqdm.auto import tqdm
 
 from src.dataset import TextDataModule, TextDataset
 from src.mlp import MLPClassifier
 from src.settings import DATA_FOLDER
 from src.utils import dictionary_to_json, is_folder_empty
+from src.word_embedder import FasttextWordEmbedder, Word2VecWordEmbedder
 
 log_format = '%(asctime)s %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
@@ -27,25 +28,52 @@ logger = logging.getLogger(__name__)
 
 
 def train_model(args):
-    output_dir = manage_output_dir(model_name='MLP')
-    dictionary_to_json(vars(args), os.path.join(output_dir, 'hp.json'))
+    eval = args.eval
+
+    output_dir = manage_output_dir(model_name='MLP', word_embedding_model=args.word_embedding_type)
+
+    dict_hyperparameters = vars(args)
+    dict_hyperparameters.pop('eval')
+    dictionary_to_json(dict_hyperparameters, os.path.join(output_dir, 'hp.json'))
 
     logger = TensorBoardLogger(name='tensorboard_logs', save_dir=output_dir, default_hp_metric=False)
 
     trainer = pl.Trainer(
         logger=logger,
         max_epochs=50,
-        early_stop_callback=EarlyStopping(monitor='val_loss', mode='min', patience=6, verbose=True),
-        gpus=1
+        callbacks=[EarlyStopping(monitor='val_loss', mode='min', patience=6, verbose=True)],
+        gpus=1 if torch.cuda.is_available() else None
     )
 
-    model = MLPClassifier(args)
-    datamodule = TextDataModule(args.data_dir, args.batch_size, True)
+    model = MLPClassifier(
+        input_size=args.input_size,
+        hidden_size=args.hidden_size,
+        output_size=args.output_size,
+        learning_rate=args.learning_rate,
+        weight_decay=args.weight_decay,
+        dropout=args.dropout
+    )
+
+    if args.word_embedding_type == 'fasttext':
+        word_embedder = FasttextWordEmbedder(args.word_embedding_model_dir)
+    elif args.word_embedding_type == 'word2vec':
+        word_embedder = Word2VecWordEmbedder(args.word_embedding_model_dir)
+    else:
+        raise ValueError(f'Incorrect word embedding model type for: {args.word_embedding_type}')
+
+    datamodule = TextDataModule(
+        data_dir=args.data_dir,
+        batch_size=args.batch_size,
+        word_embedder=word_embedder,
+        avg_embedding=True
+    )
 
     trainer.fit(model, datamodule)
-
     trainer.save_checkpoint(filepath=os.path.join(output_dir, 'model.chkpt'))
-    torch.save(model.state_dict(), os.path.join(output_dir, 'model.bin'))
+
+    if eval:
+        print('Run model evaluation')
+        evaluate_model(output_dir, args.data_dir)
 
 
 def evaluate_model(model_dir: str, data_dir: str) -> None:
@@ -54,9 +82,26 @@ def evaluate_model(model_dir: str, data_dir: str) -> None:
 
     model = MLPClassifier.load_from_checkpoint(
         checkpoint_path=os.path.join(model_dir, 'model.chkpt'),
-        **hyperparams,
+        input_size=hyperparams['input_size'],
+        hidden_size=hyperparams['hidden_size'],
+        output_size=hyperparams['output_size'],
+        learning_rate=hyperparams['learning_rate'],
+        weight_decay=hyperparams['weight_decay'],
+        dropout=hyperparams['dropout']
     )
-    dataset = TextDataset(os.path.join(data_dir, 'test_set.csv'), avg_embedding=True)
+
+    if hyperparams['word_embedding_type'] == 'fasttext':
+        word_embedder = FasttextWordEmbedder(hyperparams['word_embedding_model_dir'])
+    elif hyperparams.word_embedding_type == 'word2vec':
+        word_embedder = Word2VecWordEmbedder(hyperparams['word_embedding_model_dir'])
+    else:
+        raise ValueError(f"Incorrect word embedding model type for: {hyperparams['word_embedding_type']}")
+
+    dataset = TextDataset(
+        filepath=os.path.join(data_dir, 'hotels.sentence.test.pl.txt'),
+        word_embedder=word_embedder,
+        avg_embedding=True
+    )
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
     classes_names = dataset.label_encoder.classes_
 
@@ -74,29 +119,25 @@ def evaluate_model(model_dir: str, data_dir: str) -> None:
     fig.savefig(os.path.join(model_dir, 'confusion_matrix.pdf'), bbox_inches='tight')
 
 
-def test_model(model, dataloader) -> Tuple[torch.Tensor, torch.Tensor]:
+def test_model(model: torch.nn.Module, dataloader: DataLoader) -> Tuple[torch.Tensor, torch.Tensor]:
     model = model.eval()
     predictions: List[torch.Tensor] = []
     real_values: List[torch.Tensor] = []
     with torch.no_grad():
-        total = len(dataloader.dataset)
-        current = 0
-        for batch in dataloader:
+        for batch in tqdm(dataloader):
             x, y_labels = batch
             logits = model(x)
             _, y_hat = torch.max(logits, dim=1)
 
             predictions.extend(y_hat)
             real_values.extend(y_labels)
-            current += len(y_hat)
-            print(f"{datetime.datetime.now():%Y-%m-%d %H:%M:%S}: {current}/{total}")
 
     predictions_tensor = torch.stack(predictions).cpu()
     real_values_tensor = torch.stack(real_values).cpu()
     return predictions_tensor, real_values_tensor
 
 
-def get_confusion_matrix_plot(conf_matrix: pd.DataFrame):
+def get_confusion_matrix_plot(conf_matrix: pd.DataFrame) -> Tuple[plt.figure, plt.Axes]:
     fig, ax = plt.subplots()
     hmap = sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", cbar=False,
                        annot_kws={"fontsize": 18}, square=True, ax=ax)
@@ -108,8 +149,8 @@ def get_confusion_matrix_plot(conf_matrix: pd.DataFrame):
     return fig, ax
 
 
-def manage_output_dir(model_name: str) -> str:
-    output_dir = os.path.join(DATA_FOLDER, model_name)
+def manage_output_dir(model_name: str, word_embedding_model: str) -> str:
+    output_dir = os.path.join(DATA_FOLDER, model_name + '-' + word_embedding_model)
     run = 1
     while os.path.exists(output_dir + '-run-' + str(run)):
         if is_folder_empty(output_dir + '-run-' + str(run)):

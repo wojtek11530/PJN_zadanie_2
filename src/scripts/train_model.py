@@ -17,6 +17,15 @@ def main():
                         type=str,
                         required=True,
                         help="The data dir with files train_set.csv, dev_set.csv, test_set.csv")
+    parser.add_argument('--word_embedding_model_dir',
+                        default=None,
+                        type=str,
+                        required=True,
+                        help='Directory where located is word embedding model')
+    parser.add_argument('--word_embedding_type',
+                        type=str,
+                        required=True,
+                        help='Kind of wordembedding model, allowed values: fasttext or word2vec')
     parser.add_argument("--input_size",
                         default=100,
                         type=int,
@@ -38,7 +47,7 @@ def main():
                         type=int,
                         help="Total batch size.")
     parser.add_argument("--learning_rate",
-                        default=5e-5,
+                        default=1e-2,
                         type=float,
                         help="The initial learning rate for Adam.")
     parser.add_argument('--weight_decay', '--wd',
@@ -46,6 +55,10 @@ def main():
                         type=float,
                         metavar='W',
                         help='weight decay')
+    parser.add_argument('--eval',
+                        default=False,
+                        type=bool,
+                        help='Performing evaluation on test set after training')
 
     args = parser.parse_args()
     logger.info('The args: {}'.format(args))
