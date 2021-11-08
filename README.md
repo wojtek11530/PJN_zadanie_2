@@ -26,6 +26,7 @@ gdzie wymagane jest by podać:
    `hotels.sentence.dev.pl.txt`, `hotels.sentence.test.pl.txt`,
  - `word_embedding_model_dir` - ścieżka do pliku modelu word embedding
  - `word_embedding_type` - typ modelu word embeddingu, możliwe wartości to `fasttext` lub `word2vec,
+ 
 Pozostałe argumenty nie są wymagane, gdyż mogą przyjąć wartości domyślne:
  - `input_size` - wymiar wejściowy modelu, równy wymiarowi word embeddingu, domyślnie: 100,
  - `hidden_size` - rozmiar warstwy ukrytej, domyślnie: 32,
@@ -33,7 +34,7 @@ Pozostałe argumenty nie są wymagane, gdyż mogą przyjąć wartości domyślne
  - `dropout` - prawdopodobieństwo dropoutu, domyślnie: 0.01,
  - `batch_size` - rozmiar batcha podczas trenowania, domyślnie: 32,
  - `learning_rate` - współczynnik uczenia, domyślnie: 0.005,
- - `weight_decay` - współczynnik _weight decay_, domyśłnie: 0.0001,
+ - `weight_decay` - współczynnik _weight decay_, domyślnie: 0.0001,
  - `eval` - wartość `True` bądź `False` wskazująca, czy po trenowaniu wykona się
     ewaluacja modelu na zbiorze testowym, domyślnie `False`.
 
@@ -55,7 +56,7 @@ Zapisany model można ewaluować przy pomocy skryptu:
 ```
 python -m src.scripts.test_model \
   --model_dir ${MODEL_DIR}
-  --data_dir ${MULTIEMO_HOTEL_DATA_DIR} \
+  --data_dir ${MULTIEMO_HOTEL_DATA_DIR}
 ```
 gdzie wymagane jest by podać:
  - `data_dir` - lokalizacja, gdzie mieszczą się pliki `hotels.sentence.train.pl.txt`, 
