@@ -101,13 +101,13 @@ def evaluate_model(model_dir: str, data_dir: str, preprocess_text: bool) -> None
 
     if hyperparams['word_embedding_type'] == 'fasttext':
         word_embedder = FasttextWordEmbedder(hyperparams['word_embedding_model_dir'])
-    elif hyperparams.word_embedding_type == 'word2vec':
+    elif hyperparams['word_embedding_type'] == 'word2vec':
         word_embedder = Word2VecWordEmbedder(hyperparams['word_embedding_model_dir'])
     else:
         raise ValueError(f"Incorrect word embedding model type for: {hyperparams['word_embedding_type']}")
 
     dataset = TextDataset(
-        filepath=os.path.join(data_dir, 'hotels.sentence.test.pl.txt'),
+        filepath=os.path.join(data_dir, 'hotels.sentence.test.txt'),
         word_embedder=word_embedder,
         avg_embedding=True,
         preprocess_text=preprocess_text
