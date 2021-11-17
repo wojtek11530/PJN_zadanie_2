@@ -28,32 +28,6 @@ logger = logging.getLogger(__name__)
 
 
 def train_model(args):
-    eval = args.eval
-
-    save_model_dir = manage_output_dir(model_name='MLP', word_embedding_model=args.word_embedding_type)
-
-    dict_hyperparameters = vars(args)
-    dict_hyperparameters.pop('eval')
-    dictionary_to_json(dict_hyperparameters, os.path.join(save_model_dir, 'hp.json'))
-
-    tensorboard_logger = TensorBoardLogger(name='tensorboard_logs', save_dir=save_model_dir, default_hp_metric=False)
-
-    trainer = pl.Trainer(
-        logger=tensorboard_logger,
-        max_epochs=50,
-        callbacks=[EarlyStopping(monitor='val_loss', mode='min', patience=6, verbose=True)],
-        gpus=1 if torch.cuda.is_available() else None
-    )
-
-    model = MLPClassifier(
-        input_size=args.input_size,
-        hidden_size=args.hidden_size,
-        output_size=args.output_size,
-        learning_rate=args.learning_rate,
-        weight_decay=args.weight_decay,
-        dropout=args.dropout
-    )
-
     if args.word_embedding_type == 'fasttext':
         word_embedder = FasttextWordEmbedder(args.word_embedding_model_dir)
     elif args.word_embedding_type == 'word2vec':
@@ -65,18 +39,53 @@ def train_model(args):
         data_dir=args.data_dir,
         batch_size=args.batch_size,
         word_embedder=word_embedder,
-        avg_embedding=True
+        avg_embedding=True,
+        preprocess_text=args.preprocess_text
     )
 
-    trainer.fit(model, datamodule)
-    trainer.save_checkpoint(filepath=os.path.join(save_model_dir, 'model.chkpt'))
+    rep_num = args.rep_num
+    evaluate = args.eval
 
-    if eval:
-        print('Run model evaluation')
-        evaluate_model(save_model_dir, args.data_dir)
+    dict_hyperparameters = vars(args)
+    dict_hyperparameters.pop('rep_num')
+    dict_hyperparameters.pop('eval')
+
+    for i in range(rep_num):
+        save_model_dir = manage_output_dir(
+            model_name='MLP',
+            word_embedding_model_type=args.word_embedding_type,
+            word_embedding_model_dir=args.word_embedding_model_dir
+        )
+
+        dictionary_to_json(dict_hyperparameters, os.path.join(save_model_dir, 'hp.json'))
+        tensorboard_logger = TensorBoardLogger(name='tensorboard_logs', save_dir=save_model_dir,
+                                               default_hp_metric=False)
+
+        trainer = pl.Trainer(
+            logger=tensorboard_logger,
+            max_epochs=args.epochs,
+            callbacks=[EarlyStopping(monitor='val_loss', mode='min', patience=6, verbose=True)],
+            gpus=1 if torch.cuda.is_available() else None
+        )
+
+        model = MLPClassifier(
+            input_size=args.input_size,
+            hidden_size=args.hidden_size,
+            output_size=args.output_size,
+            learning_rate=args.learning_rate,
+            weight_decay=args.weight_decay,
+            dropout=args.dropout
+        )
+
+        trainer.fit(model, datamodule)
+        trainer.save_checkpoint(filepath=os.path.join(save_model_dir, 'model.chkpt'))
+
+        if evaluate:
+            print('Run model evaluation')
+            evaluate_model(save_model_dir, args.data_dir, args.preprocess_text)
 
 
-def evaluate_model(model_dir: str, data_dir: str) -> None:
+def evaluate_model(model_dir: str, data_dir: str, preprocess_text: bool) -> None:
     with open(os.path.join(model_dir, 'hp.json')) as json_file:
         hyperparams = json.load(json_file)
 
@@ -92,15 +101,16 @@ def evaluate_model(model_dir: str, data_dir: str) -> None:
 
     if hyperparams['word_embedding_type'] == 'fasttext':
         word_embedder = FasttextWordEmbedder(hyperparams['word_embedding_model_dir'])
-    elif hyperparams.word_embedding_type == 'word2vec':
+    elif hyperparams['word_embedding_type'] == 'word2vec':
         word_embedder = Word2VecWordEmbedder(hyperparams['word_embedding_model_dir'])
     else:
         raise ValueError(f"Incorrect word embedding model type for: {hyperparams['word_embedding_type']}")
 
     dataset = TextDataset(
-        filepath=os.path.join(data_dir, 'hotels.sentence.test.pl.txt'),
+        filepath=os.path.join(data_dir, 'hotels.sentence.test.txt'),
         word_embedder=word_embedder,
-        avg_embedding=True
+        avg_embedding=True,
+        preprocess_text=preprocess_text
     )
     dataloader = DataLoader(dataset, batch_size=32, shuffle=False)
     classes_names = dataset.label_encoder.classes_
@@ -149,8 +159,10 @@ def get_confusion_matrix_plot(conf_matrix: pd.DataFrame) -> Tuple[plt.figure, pl
     return fig, ax
 
 
-def manage_output_dir(model_name: str, word_embedding_model: str) -> str:
-    output_dir = os.path.join(MODELS_FOLDER, model_name + '-' + word_embedding_model)
+def manage_output_dir(model_name: str, word_embedding_model_type: str, word_embedding_model_dir: str) -> str:
+    word_embedding_model_name = os.path.basename(word_embedding_model_dir)
+    output_dir = os.path.join(MODELS_FOLDER,
+                              model_name + '-' + word_embedding_model_type + '-' + word_embedding_model_name)
     run = 1
     while os.path.exists(output_dir + '-run-' + str(run)):
         if is_folder_empty(output_dir + '-run-' + str(run)):

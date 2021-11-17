@@ -21,8 +21,8 @@ def main():
                         default=None,
                         type=str,
                         required=True,
-                        help="The data dir with files hotels.sentence.train.pl.txt, "
-                             "hotels.sentence.dev.pl.txt, hotels.sentence.test.pl.txt")
+                        help="The data dir with files hotels.sentence.train.txt, "
+                             "hotels.sentence.dev.txt, hotels.sentence.test.txt")
 
     args = parser.parse_args()
     logger.info('The args: {}'.format(args))

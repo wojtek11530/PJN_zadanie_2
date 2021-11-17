@@ -16,8 +16,8 @@ def main():
                         default=None,
                         type=str,
                         required=True,
-                        help="The data dir with files hotels.sentence.train.pl.txt, "
-                             "hotels.sentence.dev.pl.txt, hotels.sentence.test.pl.txt")
+                        help="The data dir with files hotels.sentence.train.txt, "
+                             "hotels.sentence.dev.txt, hotels.sentence.test.txt")
     parser.add_argument('--word_embedding_model_dir',
                         default=None,
                         type=str,
@@ -27,6 +27,9 @@ def main():
                         type=str,
                         required=True,
                         help='Kind of wordembedding model, allowed values: fasttext or word2vec')
+    parser.add_argument('--preprocess_text',
+                        action='store_true',
+                        help='Performing text preprocessing, i.e. stop words and punctuations removal, lemmatization.')
     parser.add_argument("--input_size",
                         default=100,
                         type=int,
@@ -51,15 +54,22 @@ def main():
                         default=5e-3,
                         type=float,
                         help="The initial learning rate for Adam.")
+    parser.add_argument("--epochs",
+                        default=50,
+                        type=int,
+                        help="Number of training epochs.")
     parser.add_argument('--weight_decay', '--wd',
                         default=1e-4,
                         type=float,
                         metavar='W',
                         help='weight decay')
     parser.add_argument('--eval',
-                        default=False,
-                        type=bool,
+                        action='store_true',
                         help='Performing evaluation on test set after training')
+    parser.add_argument('--rep_num',
+                        default=1,
+                        type=int,
+                        help='Repetition of training process')
 
     args = parser.parse_args()
     logger.info('The args: {}'.format(args))

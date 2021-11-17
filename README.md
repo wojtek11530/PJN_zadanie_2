@@ -19,7 +19,7 @@ python -m src.scripts.train_model \
   --batch_size ${BS} \
   --learning_rate ${LR} \
   --weight_decay ${WD} \
-  --eval ${EVAL}
+  --eval
 ```
 gdzie wymagane jest by podać:
  - `data_dir` - lokalizacja, gdzie mieszczą się pliki `hotels.sentence.train.pl.txt`, 
@@ -35,8 +35,7 @@ Pozostałe argumenty nie są wymagane, gdyż mogą przyjąć wartości domyślne
  - `batch_size` - rozmiar batcha podczas trenowania, domyślnie: 32,
  - `learning_rate` - współczynnik uczenia, domyślnie: 0.005,
  - `weight_decay` - współczynnik _weight decay_, domyślnie: 0.0001,
- - `eval` - wartość `True` bądź `False` wskazująca, czy po trenowaniu wykona się
-    ewaluacja modelu na zbiorze testowym, domyślnie `False`.
+ - `eval` - opcjonalnie, jeśli chcemy od razu dokonać ewaluacji modelu
 
 Przykładowe wywołanie
 ```
@@ -44,7 +43,7 @@ python -m src.scripts.train_model \
   --data_dir data/multiemo2 \
   --word_embedding_model_dir data/fastext/model_dim100.bin \
   --word_embedding_type fasttext \
-  --eval True
+  --eval
 ```
 
 W wyniku trenowania modelu w folderze `models` zapisze się checkpoint modelu, hiperparametry w pliku
@@ -73,6 +72,6 @@ python -m src.scripts.test_model \
 W wyniku ewaluacji w lokalizacji modelu zapisze się plik `test_results.json` z miarami jakości
 oraz `confusion_matrix.pdf` z obrazkiem macierzy pomyłek.
 
-Przy trenowaniu ustawienie falgi `eval` na `True` podowuje automatyczną ewaluację na zbiorze testowym, 
+Przy trenowaniu ustawienie falgi `eval` podowuje automatyczną ewaluację na zbiorze testowym, 
 więc nie trzeba wywoływać skryptu ewaluacyjnego jeszcze raz.
 
