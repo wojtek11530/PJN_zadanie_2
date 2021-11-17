@@ -1,22 +1,30 @@
 import os
+import string
 from typing import List, Optional, Tuple
 
+import nltk
 import numpy as np
+import spacy
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
+from spacy.lang.pl import Polish
 
 from src.utils import get_label_encoder
 from src.word_embedder import WordEmbedder
 
+stops = spacy.lang.pl.stop_words.STOP_WORDS
+lemmatizer = nltk.stem.WordNetLemmatizer()
+
 
 class TextDataModule(LightningDataModule):
     def __init__(self, data_dir: str, word_embedder: WordEmbedder,
-                 batch_size: int = 64, avg_embedding: bool = False):
+                 batch_size: int = 64, avg_embedding: bool = False, preprocess_text: bool = False):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.avg_embedding = avg_embedding
         self.word_embedder = word_embedder
+        self.preprocess_text = preprocess_text
 
         self.train = None
         self.dev = None
@@ -27,17 +35,20 @@ class TextDataModule(LightningDataModule):
         self.train = TextDataset(
             filepath=os.path.join(self.data_dir, 'hotels.sentence.train.pl.txt'),
             word_embedder=self.word_embedder,
-            avg_embedding=self.avg_embedding
+            avg_embedding=self.avg_embedding,
+            preprocess_text=self.preprocess_text
         )
         self.dev = TextDataset(
             filepath=os.path.join(self.data_dir, 'hotels.sentence.dev.pl.txt'),
             word_embedder=self.word_embedder,
-            avg_embedding=self.avg_embedding
+            avg_embedding=self.avg_embedding,
+            preprocess_text=self.preprocess_text
         )
         self.test = TextDataset(
             filepath=os.path.join(self.data_dir, 'hotels.sentence.test.pl.txt'),
             word_embedder=self.word_embedder,
-            avg_embedding=self.avg_embedding
+            avg_embedding=self.avg_embedding,
+            preprocess_text=self.preprocess_text
         )
 
     def train_dataloader(self):
@@ -63,9 +74,11 @@ class TextDataModule(LightningDataModule):
 
 
 class TextDataset(Dataset):
-    def __init__(self, filepath: str, word_embedder: WordEmbedder, avg_embedding: bool = False):
+    def __init__(self, filepath: str, word_embedder: WordEmbedder, avg_embedding: bool = False,
+                 preprocess_text: bool = False):
         super().__init__()
         self.word_embedder = word_embedder
+        self.preprocess_text = preprocess_text
 
         texts, labels = self.get_texts_and_labels_from_file(self.read_txt(filepath))
 
@@ -83,8 +96,16 @@ class TextDataset(Dataset):
         return len(self.labels)
 
     def _get_embeddings_from_text(self, text: str) -> np.ndarray:
-        words = text.split(' ')
-        embeddings = np.array([self.word_embedder[word] for word in words])
+        words = nltk.word_tokenize(text)
+
+        if self.preprocess_text:
+            words = [lemmatizer.lemmatize(w).lower().strip() for w in words if
+                     w not in stops and w not in string.punctuation]
+
+        if len(words) > 0:
+            embeddings = np.array([self.word_embedder[word] for word in words])
+        else:
+            embeddings = np.array([0] * self.word_embedder.get_dimension())
         return embeddings
 
     @staticmethod

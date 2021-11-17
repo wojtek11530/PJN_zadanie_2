@@ -16,6 +16,10 @@ class WordEmbedder(metaclass=Singleton):
     def __getitem__(self, word: str) -> np.ndarray:
         pass
 
+    @abc.abstractmethod
+    def get_dimension(self) -> int:
+        pass
+
 
 class FasttextWordEmbedder(WordEmbedder):
     def __init__(self, model_path):
@@ -24,11 +28,18 @@ class FasttextWordEmbedder(WordEmbedder):
 
     def __getitem__(self, word: str) -> np.ndarray:
         if self._model is None:
-            print(f"{datetime.now():%Y-%m-%d %H:%M:%S} FastText model loading started")
-            self._model = fasttext.load_model(self._model_path)
-            print(f"{datetime.now():%Y-%m-%d %H:%M:%S} FastText model loading ended")
-
+            self._load_model()
         return self._model.get_word_vector(word)
+
+    def get_dimension(self) -> int:
+        if self._model is None:
+            self._load_model()
+        return self._model.get_dimension()
+
+    def _load_model(self):
+        print(f"{datetime.now():%Y-%m-%d %H:%M:%S} FastText model loading started")
+        self._model = fasttext.load_model(self._model_path)
+        print(f"{datetime.now():%Y-%m-%d %H:%M:%S} FastText model loading ended")
 
 
 class Word2VecWordEmbedder(WordEmbedder):
@@ -38,9 +49,16 @@ class Word2VecWordEmbedder(WordEmbedder):
 
     def __getitem__(self, word: str) -> np.ndarray:
         if self._model is None:
-            pass
-            print(f"{datetime.now():%Y-%m-%d %H:%M:%S} Word2Vec model loading started")
-            self._model = gensim.models.Word2Vec.load(self._model_path)
-            print(f"{datetime.now():%Y-%m-%d %H:%M:%S} Word2Vec model loading ended")
+            self._load_model()
 
         return self._model.wv[word]
+
+    def get_dimension(self) -> int:
+        if self._model is None:
+            self._load_model()
+        return self._model.vector_size
+
+    def _load_model(self):
+        print(f"{datetime.now():%Y-%m-%d %H:%M:%S} Word2Vec model loading started")
+        self._model = gensim.models.Word2Vec.load(self._model_path)
+        print(f"{datetime.now():%Y-%m-%d %H:%M:%S} Word2Vec model loading ended")
