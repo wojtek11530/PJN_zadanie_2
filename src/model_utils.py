@@ -43,11 +43,14 @@ def train_model(args):
         preprocess_text=args.preprocess_text
     )
 
+    rep_num = args.rep_num
+    evaluate = args.eval
+
     dict_hyperparameters = vars(args)
     dict_hyperparameters.pop('rep_num')
     dict_hyperparameters.pop('eval')
 
-    for i in range(args.rep_num):
+    for i in range(rep_num):
         save_model_dir = manage_output_dir(
             model_name='MLP',
             word_embedding_model_type=args.word_embedding_type,
@@ -77,7 +80,7 @@ def train_model(args):
         trainer.fit(model, datamodule)
         trainer.save_checkpoint(filepath=os.path.join(save_model_dir, 'model.chkpt'))
 
-        if args.eval:
+        if evaluate:
             print('Run model evaluation')
             evaluate_model(save_model_dir, args.data_dir, args.preprocess_text)
 

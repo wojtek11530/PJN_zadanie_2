@@ -16,8 +16,8 @@ def main():
                         default=None,
                         type=str,
                         required=True,
-                        help="The data dir with files hotels.sentence.train.pl.txt, "
-                             "hotels.sentence.dev.pl.txt, hotels.sentence.test.pl.txt")
+                        help="The data dir with files hotels.sentence.train.txt, "
+                             "hotels.sentence.dev.txt, hotels.sentence.test.txt")
     parser.add_argument('--word_embedding_model_dir',
                         default=None,
                         type=str,
@@ -28,8 +28,7 @@ def main():
                         required=True,
                         help='Kind of wordembedding model, allowed values: fasttext or word2vec')
     parser.add_argument('--preprocess_text',
-                        default=False,
-                        type=bool,
+                        action='store_true',
                         help='Performing text preprocessing, i.e. stop words and punctuations removal, lemmatization.')
     parser.add_argument("--input_size",
                         default=100,
@@ -65,8 +64,7 @@ def main():
                         metavar='W',
                         help='weight decay')
     parser.add_argument('--eval',
-                        default=False,
-                        type=bool,
+                        action='store_true',
                         help='Performing evaluation on test set after training')
     parser.add_argument('--rep_num',
                         default=1,
