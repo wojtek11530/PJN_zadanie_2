@@ -51,7 +51,10 @@ class Word2VecWordEmbedder(WordEmbedder):
         if self._model is None:
             self._load_model()
 
-        return self._model.wv[word]
+        if word in self._model.wv:
+            return self._model.wv[word]
+        else:
+            return np.array([0] * self.get_dimension())
 
     def get_dimension(self) -> int:
         if self._model is None:
