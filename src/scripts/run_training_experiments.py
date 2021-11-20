@@ -19,10 +19,10 @@ word_embedding_models = [
     (os.path.join(we_models_dir, 'word2vec_train_clean.model'), 'word2vec', True),
     (os.path.join(we_models_dir, 'word2vec_wiki_base.model'), 'word2vec', False),
     (os.path.join(we_models_dir, 'word2vec_wiki_clean.model'), 'word2vec', True),
-    # (os.path.join(we_models_dir, 'model_train_base.bin'), 'fasttext', False),
-    # (os.path.join(we_models_dir, 'model_train_clean.bin'), 'fasttext', True),
-    # (os.path.join(we_models_dir, 'model_wiki_base.bin'), 'fasttext', False),
-    # (os.path.join(we_models_dir, 'model_wiki_clean.bin'), 'fasttext', True)
+    (os.path.join(we_models_dir, 'model_train_base.bin'), 'fasttext', False),
+    (os.path.join(we_models_dir, 'model_train_clean.bin'), 'fasttext', True),
+    (os.path.join(we_models_dir, 'model_wiki_base.bin'), 'fasttext', False),
+    (os.path.join(we_models_dir, 'model_wiki_clean.bin'), 'fasttext', True)
 ]
 
 
