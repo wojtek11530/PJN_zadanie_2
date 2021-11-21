@@ -10,7 +10,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 dataset_dir = os.path.relpath(os.path.join(DATA_FOLDER, 'dataset_conll'), start=PROJECT_FOLDER)
-we_models_dir = os.path.relpath(os.path.join(DATA_FOLDER, 'we_models'), start=PROJECT_FOLDER)
+we_models_dir = os.path.relpath(os.path.join(DATA_FOLDER, 'models'), start=PROJECT_FOLDER)
 
 REP_NUM = 1
 
@@ -19,10 +19,10 @@ word_embedding_models = [
     (os.path.join(we_models_dir, 'word2vec_train_clean.model'), 'word2vec', True),
     (os.path.join(we_models_dir, 'word2vec_wiki_base.model'), 'word2vec', False),
     (os.path.join(we_models_dir, 'word2vec_wiki_clean.model'), 'word2vec', True),
-    # (os.path.join(we_models_dir, 'model_train_base.bin'), 'fasttext', False),
-    # (os.path.join(we_models_dir, 'model_train_clean.bin'), 'fasttext', True),
-    # (os.path.join(we_models_dir, 'model_wiki_base.bin'), 'fasttext', False),
-    # (os.path.join(we_models_dir, 'model_wiki_clean.bin'), 'fasttext', True)
+    (os.path.join(we_models_dir, 'model_train_base.bin'), 'fasttext', False),
+    (os.path.join(we_models_dir, 'model_train_clean.bin'), 'fasttext', True),
+    (os.path.join(we_models_dir, 'model_wiki_base.bin'), 'fasttext', False),
+    (os.path.join(we_models_dir, 'model_wiki_clean.bin'), 'fasttext', True)
 ]
 
 
