@@ -10,7 +10,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 dataset_dir = os.path.relpath(os.path.join(DATA_FOLDER, 'dataset_conll'), start=PROJECT_FOLDER)
-we_models_dir = os.path.relpath(os.path.join(DATA_FOLDER, 'we_models'), start=PROJECT_FOLDER)
+we_models_dir = os.path.relpath(os.path.join(DATA_FOLDER, 'models'), start=PROJECT_FOLDER)
 
 REP_NUM = 1
 
