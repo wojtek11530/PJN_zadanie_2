@@ -4,6 +4,8 @@ from datetime import datetime
 import fasttext
 import gensim
 import numpy as np
+from transformers import AutoModel 
+
 
 from src.utils import Singleton
 
@@ -65,3 +67,24 @@ class Word2VecWordEmbedder(WordEmbedder):
         print(f"{datetime.now():%Y-%m-%d %H:%M:%S} Word2Vec model loading started")
         self._model = gensim.models.Word2Vec.load(self._model_path)
         print(f"{datetime.now():%Y-%m-%d %H:%M:%S} Word2Vec model loading ended")
+        
+        
+class TransformersWordEmbedder(WordEmbedder):
+    def __init__(self, model_path):
+        super().__init__()
+        self._model_path = model_path
+
+    def __getitem__(self, words: str) -> np.ndarray:
+        if self._model is None:
+            self._load_model()
+        return self._model(input_ids=words)
+        
+    def get_dimension(self) -> int:
+        if self._model is None:
+            self._load_model()
+        return self._model.vector_size
+
+    def _load_model(self):
+        print(f"{datetime.now():%Y-%m-%d %H:%M:%S} Transformers model loading started")
+        self._model = AutoModel.from_pretrained(self._model_path, output_hidden_states=True)
+        print(f"{datetime.now():%Y-%m-%d %H:%M:%S} Transformers model loading ended")

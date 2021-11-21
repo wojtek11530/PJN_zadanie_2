@@ -9,9 +9,11 @@ from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
 from spacy.lang.pl import Polish
 from tqdm import tqdm
+from transformers import AutoTokenizer 
+import torch
 
 from src.utils import get_label_encoder
-from src.word_embedder import WordEmbedder
+from src.word_embedder import WordEmbedder, TransformersWordEmbedder
 
 stops = spacy.lang.pl.stop_words.STOP_WORDS
 lemmatizer = nltk.stem.WordNetLemmatizer()
@@ -80,6 +82,8 @@ class TextDataset(Dataset):
         super().__init__()
         self.word_embedder = word_embedder
         self.preprocess_text = preprocess_text
+        self.transformers_tokenizer = AutoTokenizer.from_pretrained("clarin-pl/roberta-polish-kgr10" )
+
 
         texts, labels = self.get_texts_and_labels_from_file(self.read_txt(filepath))
 
@@ -98,17 +102,28 @@ class TextDataset(Dataset):
         return len(self.labels)
 
     def _get_embeddings_from_text(self, text: str) -> np.ndarray:
-        words = nltk.word_tokenize(text)
-        if self.preprocess_text:
-            words = [lemmatizer.lemmatize(w).lower().strip() for w in words if
-                     w not in stops and w not in string.punctuation]
+        if type(self.word_embedder) != TransformersWordEmbedder:
 
-        if len(words) > 0:
-            embeddings = np.array([self.word_embedder[word] for word in words])
+            words = nltk.word_tokenize(text)
+            if self.preprocess_text:
+                words = [lemmatizer.lemmatize(w).lower().strip() for w in words if
+                        w not in stops and w not in string.punctuation]
+
+            if len(words) > 0:
+                embeddings = np.array([self.word_embedder[word] for word in words])
+            else:
+                # dodanie embeddingu złożonego z samych zer
+                embeddings = np.array([[0] * self.word_embedder.get_dimension()])
+            return embeddings
         else:
-            # dodanie embeddingu złożonego z samych zer
-            embeddings = np.array([[0] * self.word_embedder.get_dimension()])
-        return embeddings
+            words = self.transformers_tokenizer.encode(text)
+            words = torch.LongTensor(words)
+            words = words.unsqueeze(0)
+            with torch.no_grad():
+                out = self.word_embedder[words]
+            hidden_states = out[2]
+            sentence_embedding = torch.mean(hidden_states[-1], dim=1).squeeze()
+            return sentence_embedding.unsqueeze(0).detach().numpy()
 
     @staticmethod
     def read_txt(input_file: str) -> List[str]:
