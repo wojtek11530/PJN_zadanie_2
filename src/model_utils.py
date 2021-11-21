@@ -19,7 +19,7 @@ from src.dataset import TextDataModule, TextDataset
 from src.mlp import MLPClassifier
 from src.settings import MODELS_FOLDER
 from src.utils import dictionary_to_json, is_folder_empty
-from src.word_embedder import FasttextWordEmbedder, Word2VecWordEmbedder
+from src.word_embedder import FasttextWordEmbedder, Word2VecWordEmbedder, TransformersWordEmbedder
 
 log_format = '%(asctime)s %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
@@ -32,6 +32,8 @@ def train_model(args):
         word_embedder = FasttextWordEmbedder(args.word_embedding_model_dir)
     elif args.word_embedding_type == 'word2vec':
         word_embedder = Word2VecWordEmbedder(args.word_embedding_model_dir)
+    elif args.word_embedding_type == 'transformers':
+        word_embedder = TransformersWordEmbedder(args.word_embedding_model_dir)
     else:
         raise ValueError(f'Incorrect word embedding model type for: {args.word_embedding_type}')
 
@@ -103,6 +105,8 @@ def evaluate_model(model_dir: str, data_dir: str, preprocess_text: bool) -> None
         word_embedder = FasttextWordEmbedder(hyperparams['word_embedding_model_dir'])
     elif hyperparams['word_embedding_type'] == 'word2vec':
         word_embedder = Word2VecWordEmbedder(hyperparams['word_embedding_model_dir'])
+    elif hyperparams['word_embedding_type'] == 'transformers':
+        word_embedder = TransformersWordEmbedder(hyperparams['word_embedding_model_dir'])
     else:
         raise ValueError(f"Incorrect word embedding model type for: {hyperparams['word_embedding_type']}")
 
