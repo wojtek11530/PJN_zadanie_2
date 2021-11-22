@@ -1,0 +1,9 @@
+model,z_plus_m_f1-score,z_amb_f1-score,z_zero_f1-score,z_minus_m_f1-score,macro avg_f1-score
+MLP tripadvisor fasttext,79.71,45.22,70.1,79.87,68.73
+MLP tripadvisor lemm fasttext,76.26,31.88,68.11,78.7,63.74
+MLP wikipedia fasttext,64.3,18.02,64.93,73.54,55.2
+MLP wikipedia lemm fasttext,63.69,2.63,61.23,70.36,49.48
+MLP tripadvisor word2vec,75.46,19.94,63.34,76.17,58.73
+MLP tripadvisor lemm word2vec,73.96,11.99,62.02,75.61,55.89
+MLP wikipedia word2vec,58.96,30.41,54.34,68.25,52.99
+MLP wikipedia lemm word2vec,58.53,4.07,59.24,68.62,47.61
