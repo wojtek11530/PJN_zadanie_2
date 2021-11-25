@@ -101,7 +101,6 @@ class TextDataset(Dataset):
     def _get_embeddings_from_text(self, text: str) -> np.ndarray:
         if type(self.word_embedder) != TransformersWordEmbedder:
 
-            words = nltk.word_tokenize(text)
             if self.preprocess_text:
                 words = [
                     token.lemma_.lower() for token in nlp(text) if not (
@@ -110,6 +109,8 @@ class TextDataset(Dataset):
                             or token.pos_ not in ["NOUN", "ADJ", "VERB", "ADV"]
                     )
                 ]
+            else:
+                words = nltk.word_tokenize(text)
 
             if len(words) > 0:
                 embeddings = np.array([self.word_embedder[word] for word in words])
