@@ -1,9 +1,3 @@
-import numpy as np
-import pandas as pd
-from os import path
-
-import string
-from spacy.lang.pl import Polish
 import spacy
 from gensim.models import Word2Vec
 import fasttext

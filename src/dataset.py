@@ -1,5 +1,4 @@
 import os
-import string
 from typing import List, Optional, Tuple
 
 import nltk
@@ -102,11 +101,12 @@ class TextDataset(Dataset):
         if type(self.word_embedder) != TransformersWordEmbedder:
 
             if self.preprocess_text:
+                words = nlp(str(text))
                 words = [
-                    token.lemma_.lower() for token in nlp(text) if not (
-                            token.is_stop or token.is_punct or token.like_email
-                            or token.like_url or token.like_num or token.is_digit
-                            or token.pos_ not in ["NOUN", "ADJ", "VERB", "ADV"]
+                    token.lemma_.lower() for token in words if not (
+                            token.is_stop or token.is_punct or token.like_email or
+                            token.like_url or token.like_num or token.is_digit or
+                            token.pos_ not in ["NOUN", "ADJ", "VERB", "ADV"]
                     )
                 ]
             else:
