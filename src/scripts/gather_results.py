@@ -12,8 +12,11 @@ def main():
 
     data = list()
     for subdirectory in models_subdirectories:
-        data_dict = gather_results(subdirectory)
-        data.append(data_dict)
+        try:
+            data_dict = gather_results(subdirectory)
+            data.append(data_dict)
+        except Exception:
+            pass
 
     df = pd.DataFrame(data)
     cols = df.columns.tolist()

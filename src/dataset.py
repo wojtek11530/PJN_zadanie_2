@@ -1,5 +1,4 @@
 import os
-import string
 from typing import List, Optional, Tuple
 
 import nltk
@@ -7,16 +6,14 @@ import numpy as np
 import spacy
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
-from spacy.lang.pl import Polish
 from tqdm import tqdm
-from transformers import AutoTokenizer 
+from transformers import AutoTokenizer
 import torch
 
 from src.utils import get_label_encoder
 from src.word_embedder import WordEmbedder, TransformersWordEmbedder
 
-stops = spacy.lang.pl.stop_words.STOP_WORDS
-lemmatizer = nltk.stem.WordNetLemmatizer()
+nlp = spacy.load("pl_core_news_md", disable=["parser", "ner"])
 
 
 class TextDataModule(LightningDataModule):
@@ -82,8 +79,7 @@ class TextDataset(Dataset):
         super().__init__()
         self.word_embedder = word_embedder
         self.preprocess_text = preprocess_text
-        self.transformers_tokenizer = AutoTokenizer.from_pretrained("clarin-pl/roberta-polish-kgr10" )
-
+        self.transformers_tokenizer = AutoTokenizer.from_pretrained("clarin-pl/roberta-polish-kgr10")
 
         texts, labels = self.get_texts_and_labels_from_file(self.read_txt(filepath))
 
@@ -104,10 +100,17 @@ class TextDataset(Dataset):
     def _get_embeddings_from_text(self, text: str) -> np.ndarray:
         if type(self.word_embedder) != TransformersWordEmbedder:
 
-            words = nltk.word_tokenize(text)
             if self.preprocess_text:
-                words = [lemmatizer.lemmatize(w).lower().strip() for w in words if
-                        w not in stops and w not in string.punctuation]
+                words = nlp(str(text))
+                words = [
+                    token.lemma_.lower() for token in words if not (
+                            token.is_stop or token.is_punct or token.like_email or
+                            token.like_url or token.like_num or token.is_digit or
+                            token.pos_ not in ["NOUN", "ADJ", "VERB", "ADV"]
+                    )
+                ]
+            else:
+                words = nltk.word_tokenize(text)
 
             if len(words) > 0:
                 embeddings = np.array([self.word_embedder[word] for word in words])

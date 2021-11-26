@@ -15,14 +15,18 @@ we_models_dir = os.path.relpath(os.path.join(DATA_FOLDER, 'models'), start=PROJE
 REP_NUM = 1
 
 word_embedding_models = [
-    (os.path.join(we_models_dir, 'word2vec_train_base.model'), 'word2vec', False),
-    (os.path.join(we_models_dir, 'word2vec_train_clean.model'), 'word2vec', True),
-    (os.path.join(we_models_dir, 'word2vec_wiki_base.model'), 'word2vec', False),
-    (os.path.join(we_models_dir, 'word2vec_wiki_clean.model'), 'word2vec', True),
-    (os.path.join(we_models_dir, 'model_train_base.bin'), 'fasttext', False),
-    (os.path.join(we_models_dir, 'model_train_clean.bin'), 'fasttext', True),
-    (os.path.join(we_models_dir, 'model_wiki_base.bin'), 'fasttext', False),
-    (os.path.join(we_models_dir, 'model_wiki_clean.bin'), 'fasttext', True)
+    (os.path.join(we_models_dir, 'word2vec_train_base_cbow.model'), 'word2vec', False),
+    (os.path.join(we_models_dir, 'word2vec_train_clean_cbow.model'), 'word2vec', True),
+    (os.path.join(we_models_dir, 'word2vec_wiki_base_cbow.model'), 'word2vec', False),
+    (os.path.join(we_models_dir, 'word2vec_wiki_clean_cbow.model'), 'word2vec', True),
+    (os.path.join(we_models_dir, 'model_train_base_cbow.bin'), 'fasttext', False),
+    (os.path.join(we_models_dir, 'model_train_clean_cbow.bin'), 'fasttext', True),
+    (os.path.join(we_models_dir, 'model_wiki_base_cbow.bin'), 'fasttext', False),
+    (os.path.join(we_models_dir, 'model_wiki_clean_cbow.bin'), 'fasttext', True),
+    (os.path.join(we_models_dir, 'model_train_base_skip.bin'), 'fasttext', False),
+    (os.path.join(we_models_dir, 'model_train_clean_skip.bin'), 'fasttext', True),
+    (os.path.join(we_models_dir, 'model_wiki_base_skip.bin'), 'fasttext', False),
+    (os.path.join(we_models_dir, 'model_wiki_clean_skip.bin'), 'fasttext', True)
 ]
 
 
