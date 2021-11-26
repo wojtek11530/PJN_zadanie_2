@@ -109,9 +109,9 @@ def evaluate_model(model_dir: str, data_dir: str, preprocess_text: bool) -> None
         dropout=hyperparams['dropout']
     )
 
-    if hyperparams['word_embedding_type'] == 'fasttext':
+    if hyperparams['word_embedding_type'] in ('fasttext', 'fasttext_cbow', 'fasttext_skipgram'):
         word_embedder = FasttextWordEmbedder(hyperparams['word_embedding_model_dir'])
-    elif hyperparams['word_embedding_type'] == 'word2vec':
+    elif hyperparams['word_embedding_type'] in ('word2vec', 'word2vec_cbow', 'word2vec_skipgram'):
         word_embedder = Word2VecWordEmbedder(hyperparams['word_embedding_model_dir'])
     elif hyperparams['word_embedding_type'] == 'transformers':
         word_embedder = TransformersWordEmbedder(hyperparams['word_embedding_model_dir'])
